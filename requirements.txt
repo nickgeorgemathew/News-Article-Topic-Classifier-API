@@ -1,0 +1,8 @@
+datasets
+transformers>=4.30.0
+evaluate
+torch[cuda] 
+numpy
+fastapi
+uvicorn[standard]
+sentencepiece
