@@ -1,0 +1,8 @@
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY dashboard/ ./dashboard
+EXPOSE 8501
+# Update dashboard/app.py to point to "http://api:8000" instead of localhost
+CMD ["streamlit", "run", "dashboard/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
