@@ -1,6 +1,4 @@
-import json
-import sqlite3
-from datetime import datatime
+
 from  transformers import pipeline,AutoTokenizer,AutoModelForSequenceClassififcation
 
 LABELS=["World","Sports","Business","Sci/Tech"]
