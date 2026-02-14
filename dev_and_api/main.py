@@ -9,6 +9,7 @@ from logs.db import sessionlocal
 from logs.model import Predictionlog
 
 MODEL_DIR = os.environ.get("MODEL_DIR", "../models/distilbert-agnews-v1")
+db_path = os.environ.get("DB_PATH", "./logs/logs.db")
 
 
 class PredictRequest(BaseModel):
