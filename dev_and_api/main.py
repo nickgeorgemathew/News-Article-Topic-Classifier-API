@@ -54,3 +54,11 @@ def prediciton(req:PredictRequest):
 @app.get("/health")
 def health():
     return {"status": "ok", "model_version": ModelWrapper.model_version}
+
+@app.get("/metrics")
+def get_metrics():
+    
+    with Session(engine) as session:
+        statement = select(User)
+        results = session.exec(statement)
+        return results.all()

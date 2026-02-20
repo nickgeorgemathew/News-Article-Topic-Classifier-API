@@ -1,16 +1,16 @@
 import argparse
 import os
 import numpy as np
-from datasets import load_dataset,class_label,load_metric
+from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
 import evaluate
 
 def preprocessing_function(examples,tokenizer,text_column="text"):
-    return tokenizer(examples[text_column],trunication=True,max_length=256)
+    return tokenizer(examples[text_column],truncation=True,max_length=256)
 
 def compute_metrics_fn(pred):
-    metric_acc=evaluate.load("accuracy")
-    metric_f1=evaluate.load("f1")
+    metric_acc=eval.load("accuracy")
+    metric_f1=eval.load("f1")
     logits,label=pred
     preds=np.argmax(logits,axis=-1)
     acc=metric_acc.compute(predictions=preds,references=label)["accuracy"]
@@ -18,7 +18,7 @@ def compute_metrics_fn(pred):
     return{"accuracy":acc,"f1_macro":f1_macro}
 
 def main():
-    parser=argparse.ArgumentParser
+    parser=argparse.ArgumentParser()
     parser.add_argument("--model_name",default="distilbert-base-uncased")
     parser.add_argument("--output_dir",default="../models/distilbert-agnews-v1")
     parser.add_argument("--epoch",type=int,default=2)
@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--learning_rate",type=float,default=2e-5)
     parser.add_argument("--seed",type=int,default=42)
 
-    args=parser.parse_args
+    args=parser.parse_args()
 
     raw_datasets=load_dataset("ag_news")
 
@@ -37,16 +37,16 @@ def main():
     tokenised_test=raw_datasets['test'].map(lambda x:preprocessing_function(x,tokenizer),batched=True)
 
 
-    model=AutoModelForSequenceClassification.from_pretrained(args.model_name)
+    model=AutoModelForSequenceClassification.from_pretrained(args.model_name,num_labels=4)
 
     training_args=TrainingArguments(
         output_dir=args.output_dir,
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         save_strategy="epoch",
         learning_rate=args.learning_rate,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
-        num_train_epochs=args.epochs,
+        num_train_epochs=args.epoch,
         weight_decay=0.01,
         logging_dir="./logs",
         load_best_model_at_end=True,
@@ -61,7 +61,7 @@ def main():
         args=training_args,
         train_dataset=tokenised_train,
         eval_dataset=tokenised_test,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         compute_metrics=compute_metrics_fn
         )
     

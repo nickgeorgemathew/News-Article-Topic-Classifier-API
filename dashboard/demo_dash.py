@@ -16,7 +16,7 @@ with st.spinner(text="predicting topic.......",width="content"):
     "text":Text
  
     }
-        res=requests.post("http://api:8000/predict",json=payload)
+        res=requests.post("http://local:8000/predict",json=payload)
         st.write("Status code:", res.status_code)
         try:
             st.json(res.json())
