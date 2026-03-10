@@ -1,6 +1,10 @@
 
 # Dataset Configuration
 dataset:
+  flag: custom #set to null if dataset is loaded from hugging face
+  paths:
+    test: "C:/Users/nikhi/Downloads/News-Article-Topic-Classifier-API/nlp_classifier_scratch/test.csv"
+    train: "C:/Users/nikhi/Downloads/News-Article-Topic-Classifier-API/nlp_classifier_scratch/train.csv"
   name: "ag_news"  # Options: ag_news, 20newsgroups
   test_size: 0.2
   random_state: 42

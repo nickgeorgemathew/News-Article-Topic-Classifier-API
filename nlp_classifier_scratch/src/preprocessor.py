@@ -60,7 +60,7 @@ def filter_short_words(tokens:list[str])->list[str]:
     return[token for token in tokens if len(token)>=2]
 
 
-def preprocessor(text:str)->str:
+def preprocess(text:str)->str:
     text=clean_string(text)
 
     tokens=tokenise(text)
@@ -70,12 +70,14 @@ def preprocessor(text:str)->str:
     tokens=filter_short_words(tokens)
     return ''.join(tokens)
 
-def batch_preprocess(texts:List[str],show_progress: bool = True)->List[str]:
-    if show_progress==True:
-        from tqdm import tqdm
-        return[preprocessor(text) for text in tqdm(texts,desc="data preprocessing...")] 
+def batch_preprocess(texts: List[str], show_progress: bool = True) -> List[str]:
+    from tqdm import tqdm
+    if show_progress:
+        return [preprocess(text) for text in tqdm(texts, desc="data preprocessing...")]
     else:
-        return[preprocessor(text) for text in texts]
+        return [preprocess(text) for text in texts]
+
+        
     
 
 
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     print(sample_text)
     print("\n" + "="*50 + "\n")
 
-    processed = preprocessor(sample_text)
+    processed = batch_preprocess(sample_text)
     print("Processed text:")
     print(processed)
 
