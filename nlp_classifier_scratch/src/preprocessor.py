@@ -68,7 +68,7 @@ def preprocess(text:str)->str:
     tokens = remove_stopwords(tokens)
     tokens=lemmatize_nltk(tokens)
     tokens=filter_short_words(tokens)
-    return ''.join(tokens)
+    return ' '.join(tokens)
 
 def batch_preprocess(texts: List[str], show_progress: bool = True) -> List[str]:
     from tqdm import tqdm

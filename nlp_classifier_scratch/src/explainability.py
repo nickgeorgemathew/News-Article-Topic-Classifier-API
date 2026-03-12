@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import yaml
+from pathlib import Path
+import os
 from sklearn.pipeline import Pipeline
 from typing import List,Optional,Dict
 
@@ -11,17 +13,34 @@ class ModelExplainer:
 
     def __init__(self, model: Pipeline, class_names: Optional[List[str]] = None,
                  config_path: str = "config.yaml"):
+            env_path=os.getenv("CONFIG_PATH")
+            if env_path:
+                full_path=Path(env_path)
+            else:
+                base_dir=Path(__file__).parent
+                project_root=base_dir.parent
+                full_path=project_root  /  config_path
+                if not full_path.exists():
+                    full_path=base_dir / config_path
+            if not full_path.exists():
+                raise FileNotFoundError(
+                    f"Config file not found. Tried: {env_path or project_root/config_path} and {base_dir/config_path}"
+                )
+
+
+
+            with open(full_path, 'r') as f:
+                self.config = yaml.safe_load(f)
         
-        self.model=model
-        self.class_names=class_names
-        with open(config_path,'r') as f:
-            self.config=yaml.safe_load(f)
-        self.vectorizer=model.named_steps.get('tfidf')
-        self.classifier=model.named_steps.get('clf')
+            self.model=model
+            self.class_names=class_names
 
-        if  self.vectorizer is None or self.classifier is None:
-            raise ValueError("Pipeline must have steps named 'tfidf' and 'clf'.")
+            self.vectorizer=model.named_steps.get('tfidf')
+            self.classifier=model.named_steps.get('clf')
 
+            if  self.vectorizer is None or self.classifier is None:
+                raise ValueError("Pipeline must have steps named 'tfidf' and 'clf'.")
+            
 
 
 

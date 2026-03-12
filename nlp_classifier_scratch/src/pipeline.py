@@ -11,7 +11,7 @@ from typing import Optional, List, Dict, Any
 import os
 from pathlib import Path
 from data_loader import DataLoader
-from preprocessor import batch_preprocess as pre
+from preprocessor import preprocess as pre
 from model_trainer import ModelTrainer
 from evaluator import ModelEvaluator
 from explainability import ModelExplainer
@@ -96,7 +96,7 @@ class TextClassificationPipeline:
         self.y_train = self.train_df["Class Index"]
         self.y_test = self.test_df["Class Index"]
 
-        print(f"Sample preprocessed text:\n  {self.X_train[:150]}")
+        print(f"Sample preprocessed text:\n  {self.X_train[450]}")
         return self.X_train, self.X_test, self.y_train, self.y_test
 
     # ------------------------------------------------------------------
@@ -106,13 +106,13 @@ class TextClassificationPipeline:
         
         trainer=ModelTrainer()
         print("\n--- Baseline ---")
-        baseline = trainer.train_base_model(self.X_train, self.y_train)
+        baseline = trainer.train_baseline(self.X_train, self.y_train)
 
         print("\n--- Naive Bayes ---")
-        nb = trainer.tune_NB(self.X_train, self.y_train)
+        nb = trainer.tune_naive_bayes(self.X_train, self.y_train)
 
         print("\n--- Logistic Regression ---")
-        lr = trainer.tune_log_reg(self.X_train, self.y_train)
+        lr = trainer.tune_logistic_regression(self.X_train, self.y_train)
 
         self.trained_models = {
             "Baseline (NB)": baseline["model"],
@@ -133,7 +133,7 @@ class TextClassificationPipeline:
             evaluator.evaluate(model, self.X_test, self.y_test, model_name=name)
 
         comparison = evaluator.compare_models(
-            save_path=os.path.join(self.config["paths"]["results_dir"], "model_comparison.png")
+            save_path=os.path.join(self.config_path["paths"]["results_dir"], "model_comparison.png")
         )
 
         # Pick best model by F1 macro
@@ -145,7 +145,7 @@ class TextClassificationPipeline:
         # Confusion matrix for best model
         evaluator.plot_confusion_matrix(
             best_name,
-            save_path=os.path.join(self.config["paths"]["results_dir"], "confusion_matrix.png")
+            save_path=os.path.join(self.config_path["paths"]["results_dir"], "confusion_matrix.png")
         )
 
         self.evaluator = evaluator
@@ -160,14 +160,13 @@ class TextClassificationPipeline:
 
         explainer = ModelExplainer(
             self.best_model,
-            class_names=self.class_names,
-            config_path=self.config_path
+            class_names=self.class_names
         )
 
         print(f"\nGenerating feature importance plots for: {self.best_model_name}")
         explainer.explain_dataset_features(
             n=15,
-            save_path=os.path.join(self.config["paths"]["results_dir"], "feature_importance.png")
+            save_path=os.path.join(self.config_path["paths"]["results_dir"], "feature_importance.png")
         )
 
         # Explain a single example
@@ -229,16 +228,16 @@ class TextClassificationPipeline:
     # ------------------------------------------------------------------
     # Full run
     # ------------------------------------------------------------------
-    def run(self, search_type: str = "grid"):
+    def run(self):
         """Run the complete pipeline end-to-end."""
         print("=" * 60)
         print("TEXT CLASSIFICATION PIPELINE")
         print("=" * 60)
 
-        self.load_data()
-        self.preprocess()
-        self.train(search_type)
-        self.evaluate()
+        # self.load_data()
+        # self.preprocess()
+        # self.train()
+        # self.evaluate()
         self.explain()
         self.save_best_model()
 
@@ -246,10 +245,10 @@ class TextClassificationPipeline:
         print("PIPELINE COMPLETE")
         print("=" * 60)
         print(f"Best model : {self.best_model_name}")
-        print(f"Models dir : {self.config['paths']['models_dir']}")
-        print(f"Results dir: {self.config['paths']['results_dir']}")
+        print(f"Models dir : {self.config_path['paths']['models_dir']}")
+        print(f"Results dir: {self.config_path['paths']['results_dir']}")
 
 
 if __name__ == "__main__":
     pipeline = TextClassificationPipeline()
-    pipeline.run(search_type="grid")
+    pipeline.run()

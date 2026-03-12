@@ -7,6 +7,7 @@ from sklearn.model_selection import RandomizedSearchCV,StratifiedKFold
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import HalvingRandomSearchCV
 from sklearn.pipeline import Pipeline
+from scipy.stats import uniform, loguniform
 import joblib
 import yaml
 from typing import Dict,Tuple,Any
@@ -60,7 +61,9 @@ class ModelTrainer:
             max_df=preproc_config['max_df'],
             min_df=preproc_config['min_df'],
             sublinear_tf=True,  # Use log scaling
-            use_idf=True
+            use_idf=True,
+            norm='l2',
+            stop_words='english'
         )
     
     def train_baseline(self, X_train: pd.Series, y_train: pd.Series) -> Dict[str, Any]:
@@ -121,7 +124,8 @@ class ModelTrainer:
         
         # Parameter grid
         param_grid = {
-            'clf__alpha': self.config['models']['naive_bayes']['alpha']
+            'clf__alpha': self.config['models']['naive_bayes']['alpha'],
+            'clf__fit_prior':self.config['models']['naive_bayes']['fit_prior']
         }
         
         # Cross-validation strategy
@@ -135,7 +139,6 @@ class ModelTrainer:
         search = RandomizedSearchCV(
                 nb_pipeline,
                 param_grid,
-                n_iter=10,
                 cv=cv,
                 scoring=self.config['training']['scoring'],
                 n_jobs=self.config['training']['n_jobs'],
@@ -182,11 +185,15 @@ class ModelTrainer:
             ('clf', LogisticRegression(random_state=self.config['dataset']['random_state']))
         ])
         
+     
+
+        
         # Parameter grid
         param_grid = {
             'clf__C': self.config['models']['logistic_regression']['C'],
             'clf__max_iter': self.config['models']['logistic_regression']['max_iter'],
-            'clf__solver': self.config['models']['logistic_regression']['solver']
+            'clf__solver': self.config['models']['logistic_regression']['solver'],
+            'clf__penalty':self.config['models']['logistic_regression']['penalty']
         }
         
         # Cross-validation strategy
@@ -201,7 +208,7 @@ class ModelTrainer:
         search = RandomizedSearchCV(
                 lr_pipeline,
                 param_grid,
-                n_iter=10,
+                n_iter=self.config['training']['iter'],
                 cv=cv,
                 scoring=self.config['training']['scoring'],
                 n_jobs=self.config['training']['n_jobs'],
@@ -243,20 +250,25 @@ class ModelTrainer:
 
 
 if __name__ == "__main__":
-    # Demo usage
-    
     from preprocessor import preprocess as pre
     
     # Load data
-    train_df=pd.read_csv("nlp_classifier_scratch/train.csv")
-    test_df=pd.read_csv("nlp_classifier_scratch/test.csv")
-    #preprocess
-    X_train = (train_df["Title"].astype(str) + " " + train_df["Description"].astype(str)).tolist()
-    X_train= [pre(i) for i in X_train]
-    y_train = train_df["Class Index"]
-    X_train=X_train[:400]
-    y_train=y_train[:400]
+    train_df = pd.read_csv("nlp_classifier_scratch/train.csv")
+    test_df = pd.read_csv("nlp_classifier_scratch/test.csv")
     
+    # Preprocess
+    X_train = (train_df["Title"].astype(str) + " " + train_df["Description"].astype(str)).tolist()
+    X_train = [pre(i) for i in X_train]
+    y_train = train_df["Class Index"]
+    
+    # REMOVE THESE LINES - USE FULL DATASET:
+    # X_train = X_train[:400]  # DELETE THIS
+    # y_train = y_train[:400]  # DELETE THIS
+    
+    # Diagnostic info
+    print(f"Total training samples: {len(X_train)}")
+    print(f"Number of classes: {len(np.unique(y_train))}")
+    print(f"Samples per class:\n{pd.Series(y_train).value_counts()}")
     
     # Train
     trainer = ModelTrainer()
@@ -267,8 +279,10 @@ if __name__ == "__main__":
     # Tune models
     nb_results = trainer.tune_naive_bayes(X_train, y_train)
     lr_results = trainer.tune_logistic_regression(X_train, y_train)
-
-
+    
+    # Save best models
+    trainer.save_model('best_naive_bayes', nb_results['best_model'])
+    trainer.save_model('best_logistic_regression', lr_results['best_model'])
 
 
 

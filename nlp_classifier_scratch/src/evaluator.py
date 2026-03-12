@@ -12,15 +12,33 @@ from sklearn.metrics import (
 from sklearn.pipeline import Pipeline
 from typing import Dict, List, Any, Optional
 import os
+from pathlib import Path
 import yaml
 
 
 class ModelEvaluator:
    
 
-    def __init__(self, config_path: str = "config.yaml", class_names: Optional[List[str]] = None):
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
+    def __init__(self,config_path, class_names: Optional[List[str]] = None):
+        # env_path=os.getenv("CONFIG_PATH")
+        # if env_path:
+        #     full_path=Path(env_path)
+        # else:
+        #     base_dir=Path(__file__).parent
+        #     project_root=base_dir.parent
+        #     full_path=project_root  /  config_path
+        #     if not full_path.exists():
+        #         full_path=base_dir/config_path
+        # if not full_path.exists():
+        #     raise FileNotFoundError(
+        #         f"Config file not found. Tried: {env_path or project_root/config_path} and {base_dir/config_path}"
+        #     )
+
+
+
+        # with open(full_path, 'r') as f:
+        #     self.config = yaml.safe_load(f)
+        self.config_path=config_path
         self.class_names = class_names
         self.results = {}
 
