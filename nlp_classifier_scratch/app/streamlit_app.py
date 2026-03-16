@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 
 # Make src importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from preprocessor import TextPreprocessor
+from src.preprocessor import TextPreprocessor
 
 # -----------------------------------------------------------------------
 # Constants
