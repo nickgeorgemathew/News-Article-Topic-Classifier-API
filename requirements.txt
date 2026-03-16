@@ -1,5 +1,5 @@
 datasets
-sklearn
+scikit-learn
 transformers>=4.30.0
 evaluate
 torch[cuda] 

@@ -133,7 +133,7 @@ class TextClassificationPipeline:
             evaluator.evaluate(model, self.X_test, self.y_test, model_name=name)
 
         comparison = evaluator.compare_models(
-            save_path=os.path.join(self.config_path["paths"]["results_dir"], "model_comparison.png")
+            save_path=os.path.join(self.config_path["paths"]["results_dir"], "model_comparison_temp.png")
         )
 
         # Pick best model by F1 macro
@@ -145,7 +145,7 @@ class TextClassificationPipeline:
         # Confusion matrix for best model
         evaluator.plot_confusion_matrix(
             best_name,
-            save_path=os.path.join(self.config_path["paths"]["results_dir"], "confusion_matrix.png")
+            save_path=os.path.join(self.config_path["paths"]["results_dir"], "confusion_matrix_temp.png")
         )
 
         self.evaluator = evaluator
@@ -170,10 +170,10 @@ class TextClassificationPipeline:
         )
 
         # Explain a single example
-        sample_text = self.test_df["text"].iloc[0]
+        sample_text = self.test_df["Description"].iloc[0]
         print(f"\nExample explanation for:\n  {sample_text[:200]}")
         try:
-            explainer.explain_prediction_lime(sample_text, num_features=10, num_samples=300)
+            explainer.explain_prediction_LIME(sample_text, num_features=10, num_samples=300)
         except ImportError:
             print("  (Install `lime` for per-instance explanations: pip install lime)")
 
@@ -184,7 +184,7 @@ class TextClassificationPipeline:
         if self.best_model is None:
             raise RuntimeError("Run evaluate() first.")
 
-        path = os.path.join(self.config["paths"]["models_dir"], "best_model.joblib")
+        path = os.path.join(self.config_path["paths"]["models_dir"], "best_model.joblib")
         joblib.dump(self.best_model, path)
         print(f"\nBest model saved to: {path}")
         return path
@@ -234,10 +234,10 @@ class TextClassificationPipeline:
         print("TEXT CLASSIFICATION PIPELINE")
         print("=" * 60)
 
-        # self.load_data()
-        # self.preprocess()
-        # self.train()
-        # self.evaluate()
+        self.load_data()
+        self.preprocess()
+        self.train()
+        self.evaluate()
         self.explain()
         self.save_best_model()
 

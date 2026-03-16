@@ -52,7 +52,8 @@ class ModelExplainer:
         elif hasattr(clf,'feature_log_prob'):
             weights=clf.feature_log_prob[class_idx]
         else:
-            raise ValueError("classifier does not expose ")
+             raise ValueError("classifier does not expose ")
+            
         top_idx=np.argsort(weights)[::-1][:n]
         bottom_idx=np.argsort(weights)[:n]
 
@@ -78,11 +79,11 @@ class ModelExplainer:
         pos=df[df["direction"]=="positive"].head(n)
         neg=df[df["direction"]=="negtive"].head(n)
 
-        combined=pd.concat([pos,neg]).sort_values("weight")
+        combined=pd.concat([pos,neg]).sort_values("weights")
 
         fig,ax=plt.subplots(figsize=(10, max(6, n // 2)))
-        colors= ["#d73027" if w < 0 else "#1a9850" for w in combined["weight"]]
-        ax.barh(combined["features"],combined["weight"],color=colors)
+        colors= ["#d73027" if w < 0 else "#1a9850" for w in combined["weights"]]
+        ax.barh(combined["features"],combined["weights"],color=colors)
         ax.axvline(0,color="black",width=0.8)
         ax.set_title(f"Top Features — {label}", fontsize=13)
         ax.set_xlabel("Feature Weight")
@@ -125,7 +126,7 @@ class ModelExplainer:
             "probabilities": dict(zip(self.class_names or range(len(proba)), proba)),
             "lime_explanation": exp.as_list()
         }
-def explain_dataset_features(self, n: int = 15, save_path: Optional[str] = None):
+    def explain_dataset_features(self, n: int = 15, save_path: Optional[str] = None):
        
         n_classes = len(self.classifier.classes_)
         cols = min(3, n_classes)
@@ -136,15 +137,16 @@ def explain_dataset_features(self, n: int = 15, save_path: Optional[str] = None)
 
         for class_idx in range(n_classes):
             ax = axes[class_idx]
-            df = self.get_top_features(class_idx, n)
+            df = self.get_top_feature(class_idx, n)
             label = df["class"].iloc[0]
 
             pos = df[df["direction"] == "positive"].head(n)
             neg = df[df["direction"] == "negative"].head(n)
-            combined = pd.concat([pos, neg]).sort_values("weight")
+           
+            combined = pd.concat([pos, neg]).sort_values("weights")
 
-            colors = ["#d73027" if w < 0 else "#1a9850" for w in combined["weight"]]
-            ax.barh(combined["feature"], combined["weight"], color=colors)
+            colors = ["#d73027" if w < 0 else "#1a9850" for w in combined["weights"]]
+            ax.barh(combined["feature"], combined["weights"], color=colors)
             ax.axvline(0, color="black", linewidth=0.8)
             ax.set_title(f"{label}", fontsize=11)
             ax.set_xlabel("Weight")
@@ -162,3 +164,4 @@ def explain_dataset_features(self, n: int = 15, save_path: Optional[str] = None)
         else:
             plt.show()
         plt.close()
+
