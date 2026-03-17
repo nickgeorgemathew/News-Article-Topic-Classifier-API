@@ -11,7 +11,7 @@ from typing import Optional, List, Dict, Any
 import os
 from pathlib import Path
 from data_loader import DataLoader
-from preprocessor import preprocess as pre
+from preprocessor import TextPreprocessor
 from model_trainer import ModelTrainer
 from evaluator import ModelEvaluator
 from explainability import ModelExplainer
@@ -90,9 +90,9 @@ class TextClassificationPipeline:
         print("\nPreprocessing texts...")
         text_cols=self.train_df.select_dtypes(include=['object','string'])
         self.X_train = (self.train_df["Title"].astype(str) + " " + self.train_df["Description"].astype(str)).tolist()
-        self.X_train= [pre(i) for i in self.X_train]
+        self.X_train= [TextPreprocessor.preprocess(i) for i in self.X_train]
         self.X_test = (self.test_df["Title"].astype(str) + " " + self.test_df["Description"].astype(str)).tolist()
-        self.X_test=[pre(i) for i in self.X_test]
+        self.X_test=[TextPreprocessor.preprocess(i) for i in self.X_test]
         self.y_train = self.train_df["Class Index"]
         self.y_test = self.test_df["Class Index"]
 
@@ -203,10 +203,12 @@ class TextClassificationPipeline:
             List of dicts with prediction and probabilities
         """
         if self.best_model is None:
+            self.best_model=Path(self.config_path['paths']['models_dir']) / "best_model.joblib"
+        if self.best_model is None:
             raise RuntimeError("No model available. Run the full pipeline first.")
 
         
-        processed = [pre(t) for t in texts]
+        processed = [TextPreprocessor.preprocess(t) for t in texts]
         preds = self.best_model.predict(processed)
         probas = self.best_model.predict_proba(processed)
 

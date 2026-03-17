@@ -22,7 +22,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from preprocessor import TextPreprocessor
+from src.preprocessor import TextPreprocessor  
 
 # -----------------------------------------------------------------------
 # Config & globals

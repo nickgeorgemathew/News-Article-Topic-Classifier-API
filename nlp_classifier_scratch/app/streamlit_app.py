@@ -11,10 +11,11 @@ import yaml
 import os
 import sys
 import pandas as pd
+from pathlib import Path
 import plotly.graph_objects as go
 
 # Make src importable
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.preprocessor import TextPreprocessor
 
 # -----------------------------------------------------------------------
@@ -22,6 +23,8 @@ from src.preprocessor import TextPreprocessor
 # -----------------------------------------------------------------------
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config.yaml")
 MODEL_PATH  = os.path.join(os.path.dirname(__file__), "..", "models", "best_model.joblib")
+with open(CONFIG_PATH) as f:
+   config_path= yaml.safe_load(f)
 
 AG_NEWS_LABELS = {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
 
@@ -45,24 +48,54 @@ SAMPLE_TEXTS = {
 
 @st.cache_resource
 def load_model():
-    if not os.path.exists(MODEL_PATH):
+    best_model=Path(config_path['paths']['models_dir']) / "best_model.joblib"
+    if not best_model.exists() :
         return None
-    return joblib.load(MODEL_PATH)
+    return joblib.load(best_model)
 
 
 @st.cache_resource
 def load_preprocessor():
     return TextPreprocessor(config_path=CONFIG_PATH)
 
-
 def classify(text: str, model, preprocessor, class_names):
     processed = preprocessor.preprocess(text)
-    pred = model.predict([processed])[0]
     proba = model.predict_proba([processed])[0]
-    label = class_names[pred] if class_names else str(pred)
-    return label, float(proba.max()), dict(zip(
-        class_names or [str(i) for i in range(len(proba))], proba
-    ))
+    
+    # Get prediction from highest probability
+    pred_idx = proba.argmax()
+    label = class_names[pred_idx]
+    
+    # Create probability dictionary
+    proba_dict = dict(zip(class_names, proba))
+    
+    return label, float(proba.max()), proba_dict
+# def classify(text: str, model, preprocessor, class_names):
+#     # processed = preprocessor.preprocess(text)
+#     # pred = model.predict([processed])[0]
+#     # proba = model.predict_proba([processed])[0]
+#     # label = class_names[pred] if class_names else str(pred)
+#     # return label, float(proba.max()), dict(zip(
+#     #     class_names or [str(i) for i in range(len(proba))], proba
+#     # )) 
+#     processed = preprocessor.preprocess(text)
+    
+#     # Get the classifier from the pipeline
+#     clf = model.named_steps['clf']
+    
+#     pred = model.predict([processed])[0]
+#     proba = model.predict_proba([processed])[0]
+    
+#     # Map using model's internal class order
+#     # model.classes_ = [0, 1, 2, 3] (the order the model uses)
+#     label = class_names[pred] if class_names else str(pred)
+    
+#     # Create proba_dict correctly aligned with model's classes
+#     proba_dict = {}
+#     for i, class_idx in enumerate(clf.classes_):
+#         proba_dict[class_names[class_idx]] = float(proba[i])
+    
+#     return label, float(proba.max()), proba_dict
 
 
 def prob_bar_chart(proba_dict, predicted_label):
@@ -94,7 +127,7 @@ def prob_bar_chart(proba_dict, predicted_label):
 st.set_page_config(page_title="Text Classifier", page_icon="📰", layout="wide")
 
 st.title("📰 Text Classification Demo")
-st.caption("Powered by TF-IDF + Logistic Regression on AG News")
+st.caption("Powered by TF-IDF + Logistic Regression ")
 
 # Sidebar
 with st.sidebar:
@@ -116,9 +149,8 @@ if model is None:
     )
     st.stop()
 
-with open(CONFIG_PATH) as f:
-    cfg = yaml.safe_load(f)
-dataset_name = cfg["dataset"]["name"]
+
+dataset_name = config_path["dataset"]["name"]
 class_names = list(AG_NEWS_LABELS.values()) if dataset_name == "ag_news" else None
 
 # Main input
