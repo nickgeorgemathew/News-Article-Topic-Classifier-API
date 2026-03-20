@@ -137,8 +137,15 @@ def predict(request: PredictRequest):
     t0 = time.perf_counter()
     processed = preprocessor.preprocess(request.text)
     t1 = time.perf_counter()
-    pred = model.predict([processed])[0]
     proba = model.predict_proba([processed])[0]
+    pred = proba.argmax()
+    pred_idx = proba.argmax()
+    label = class_names[pred_idx]
+    
+    # Create probability dictionary
+    proba_dict = dict(zip(class_names, proba))
+    
+    label, float(proba.max()), proba_dict
     t2 = time.perf_counter()
 
     label = class_names[pred] if class_names else str(pred)

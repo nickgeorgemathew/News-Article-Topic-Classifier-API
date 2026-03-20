@@ -202,7 +202,7 @@ if classify_btn:
 # -----------------------------------------------------------------------
 st.divider()
 with st.expander("📊 Batch classification (upload CSV)"):
-    uploaded = st.file_uploader("Upload a CSV with a 'text' column", type="csv")
+    uploaded = st.file_uploader("Upload a CSV with a 'Description' column", type="csv")
     if uploaded:
         df_upload = pd.read_csv(uploaded)
         if "text" not in df_upload.columns:
